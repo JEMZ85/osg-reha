@@ -487,7 +487,9 @@ function renderHome(){
   const p=PH[ST.phase],lv=Math.floor(ST.xp/1000),xt=ST.xp%1000;
   const lvt=LVL[Math.min(lv,LVL.length-1)];
   const str=calcStr(),last=ST.wos.length?ST.wos[ST.wos.length-1]:null;
-  const canTr=canTrain(),days=getDaysPostTrauma(),sub=getSubPhaseLabel();
+  const days=getDaysPostTrauma(),sub=getSubPhaseLabel();
+  const strCooldown=daysSinceLastStrength(),strPaused=strCooldown<2;
+  const strHrsLeft=strPaused?Math.ceil((2-strCooldown)*24):0;
 
   document.getElementById('home-body').innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center">
@@ -542,14 +544,14 @@ function renderHome(){
       </div></div>`
     :`<div class="card csm" style="text-align:center;color:var(--muted);font-size:14px">Noch kein Training aufgezeichnet</div>`}
 
-    ${canTr
-      ?`<button class="btn btp" onclick="startCI()">Training starten →</button>`
-      :`<div class="card csm" style="text-align:center">
-          <div style="font-size:18px">✅</div>
-          <div style="font-weight:600;margin-top:4px">Heute bereits trainiert</div>
-          <div style="font-size:13px;color:var(--muted);margin-top:2px">Mind. 2 Tage Pause empfohlen</div>
-        </div>
-        <button class="btn btg" onclick="startCI()">Trotzdem trainieren</button>`}
+    <button class="btn btp" onclick="startCI()">Training starten →</button>
+    ${strPaused?`<div class="info-banner blue">
+      <span style="font-size:18px">💪</span>
+      <div>
+        <div style="font-weight:600">Kraftpause · noch ~${strHrsLeft} Std.</div>
+        <div style="margin-top:2px;opacity:.85">Mobilisation & Balance heute verfügbar. Kraft erst nach 48 Std.</div>
+      </div>
+    </div>`:''}
 
     ${ST.phase<4?`<div class="card csm">
       <div class="lsm" style="margin-bottom:8px">Übergang → Phase ${ST.phase+1}</div>
@@ -559,7 +561,11 @@ function renderHome(){
     <div class="fp"></div>`;
 }
 
-function canTrain(){if(!ST.lastWo)return true;return(Date.now()-new Date(ST.lastWo))/864e5>=2}
+const STR_CATS=['strength_ankle','strength_knee','strength_hip'];
+function daysSinceLastStrength(){
+  const last=[...ST.wos].reverse().find(w=>w.hasStr);
+  return last?(Date.now()-new Date(last.dt))/864e5:999;
+}
 function calcStr(){
   if(!ST.wos.length)return 0;
   const s=[...ST.wos].sort((a,b)=>new Date(b.dt)-new Date(a.dt));
@@ -699,7 +705,14 @@ function buildWo(){
     exs=base.filter(e=>e.cat==='mobility').map(e=>({...e,s:2}));
   }
 
-  SES={start:Date.now(),exs,int,ci:ciAns,done:new Array(exs.length).fill(false),setsDone:exs.map(()=>0),xp:0,fb:null};
+  // Kraft-Cooldown: Kraftkategorien nach letztem Kraft-Workout für 2 Tage sperren
+  const strFiltered=daysSinceLastStrength()<2;
+  if(strFiltered){
+    exs=exs.filter(e=>!STR_CATS.includes(e.cat));
+    if(exs.length===0)exs=base.filter(e=>e.cat==='mobility').map(e=>({...e,s:2}));
+  }
+
+  SES={start:Date.now(),exs,int,strFiltered,ci:ciAns,done:new Array(exs.length).fill(false),setsDone:exs.map(()=>0),xp:0,fb:null};
   renderOv();go('overview');
 }
 
@@ -711,13 +724,14 @@ function renderOv(){
     moderat:{i:'⚡',m:'Moderates Workout · Kraft & Mobilisation',c:'var(--yel)'},
     voll:{i:'🔥',m:'Volles Workout · Alle Übungen',c:'var(--acc)'}
   };
+  const strNote=SES.strFiltered?' · Kraft pausiert (48h)':'';
   const b=bm[int];
 
   document.getElementById('ov-banner').innerHTML=`
     <div style="display:flex;align-items:center;gap:10px">
       <span style="font-size:24px">${b.i}</span>
       <div>
-        <div style="font-weight:600;font-size:14px">${b.m}</div>
+        <div style="font-weight:600;font-size:14px">${b.m}${strNote}</div>
         <div style="font-size:12px;color:var(--muted);margin-top:2px">${exs.length} Übungen · ca. ${exs.length*5} Min</div>
       </div>
     </div>`;
@@ -867,7 +881,8 @@ function selFb(el,v){selFbVal=v;document.querySelectorAll('#fb-opts .opt').forEa
 
 function finishWo(){
   const exDone=SES.done.filter(Boolean).length,now=new Date().toISOString();
-  ST.wos.push({dt:now,ph:ST.phase,int:SES.int,exDone,xp:SES.xp,ci:SES.ci,fb:selFbVal});
+  const hasStr=SES.exs.some(e=>STR_CATS.includes(e.cat));
+  ST.wos.push({dt:now,ph:ST.phase,int:SES.int,exDone,xp:SES.xp,ci:SES.ci,fb:selFbVal,hasStr});
   ST.xp+=SES.xp;ST.lastWo=now;svSt();SES=null;go('home');
 }
 
