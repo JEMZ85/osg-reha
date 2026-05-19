@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>OSG Reha</title>
+
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#10B981">
+
+<!-- iOS PWA -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="OSG Reha">
+<link rel="apple-touch-icon" href="/icon-192.png">
+
+<style>
+:root {
+  color-scheme: light;
+  --acc:#10B981;--acc2:#059669;--accl:#D1FAE5;
+  --bg:#F1F5F9;--card:#fff;--text:#0F172A;--muted:#64748B;--border:#E2E8F0;
+  --red:#EF4444;--yel:#F59E0B;--blu:#3B82F6;--pur:#8B5CF6;--ora:#F97316;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto}
+.scr{display:none;min-height:100vh;flex-direction:column}
+.scr.on{display:flex;animation:fi .2s ease}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.hdr{display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.hdr-back{width:34px;height:34px;border-radius:50%;border:none;background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.hdr h2{font-size:16px;font-weight:600;flex:1}
+.body{flex:1;overflow-y:auto;padding:16px}
+.body>*+*{margin-top:10px}
+.card{background:var(--card);border-radius:16px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.csm{border-radius:12px;padding:14px 16px}
+.btn{display:block;width:100%;padding:15px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:transform .1s,opacity .1s;text-align:center}
+.btn:active{transform:scale(.98);opacity:.9}
+.btp{background:var(--acc);color:#fff}
+.btg{background:var(--bg);color:var(--text);border:1px solid var(--border)}
+.bts{background:#FEF2F2;color:var(--red);border:1px solid #FECACA}
+.btn+.btn{margin-top:8px}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--card);border-radius:12px;padding:14px 10px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.sv{font-size:20px;font-weight:800}
+.sl{font-size:11px;color:var(--muted);margin-top:2px}
+.pbw{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.pbf{height:100%;border-radius:3px;transition:width .6s ease}
+.dots{display:flex;gap:6px;margin-bottom:20px}
+.dot{flex:1;height:4px;border-radius:2px;background:var(--border);transition:background .3s}
+.dot.on{background:var(--acc)}
+.opts{display:flex;gap:8px;margin-top:10px}
+.opt{flex:1;padding:12px 6px;border:2px solid var(--border);border-radius:10px;background:var(--card);cursor:pointer;text-align:center;font-size:13px;font-weight:500;transition:all .15s}
+.opt.sel{border-color:var(--acc);background:var(--accl);color:var(--acc2)}
+.opt.sel-no{border-color:var(--red);background:#FEF2F2;color:var(--red)}
+.oi{font-size:20px;margin-bottom:4px;display:block}
+input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:var(--border);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--acc);box-shadow:0 2px 6px rgba(16,185,129,.4)}
+.sll{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px}
+input[type=date]{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:16px;background:var(--bg);color:var(--text);outline:none}
+input[type=date]:focus{border-color:var(--acc)}
+.exi{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--card);border-radius:12px;margin-bottom:7px;box-shadow:0 1px 2px rgba(0,0,0,.06);cursor:pointer;transition:opacity .2s}
+.exi.done{opacity:.4}
+.exic{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.exin{flex:1}
+.exn{font-weight:600;font-size:14px}
+.exm{font-size:12px;color:var(--muted);margin-top:2px}
+.exck{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+.exck.done{background:var(--acc);border-color:var(--acc)}
+.exac{background:var(--card);border-radius:20px;padding:24px 20px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.exbi{font-size:64px;margin-bottom:12px}
+.extt{font-size:20px;font-weight:700;margin-bottom:6px}
+.exd{font-size:14px;color:var(--muted);line-height:1.5;margin-bottom:20px}
+.sets{display:flex;gap:10px;justify-content:center;margin:20px 0}
+.sb{width:52px;height:52px;border-radius:50%;border:2px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;transition:all .15s}
+.sb.done{background:var(--acc);border-color:var(--acc);color:#fff}
+.sb.cur{border-color:var(--acc);color:var(--acc);box-shadow:0 0 0 4px var(--accl)}
+.tring{width:170px;height:170px;border-radius:50%;border:8px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:24px auto;position:relative}
+.tring svg{position:absolute;top:-8px;left:-8px;transform:rotate(-90deg)}
+.tnum{font-size:44px;font-weight:800}
+.tlbl{font-size:13px;color:var(--muted)}
+.sico{font-size:72px;text-align:center;margin:24px 0 8px}
+.xpg{font-size:32px;font-weight:800;color:var(--acc);text-align:center}
+.xpl{font-size:14px;color:var(--muted);text-align:center;margin-bottom:20px}
+@keyframes xpu{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-50px);opacity:0}}
+.xpf{position:fixed;font-size:18px;font-weight:800;color:var(--acc);pointer-events:none;animation:xpu .8s ease forwards;z-index:999}
+.hi{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+.hi:last-child{border-bottom:none}
+.p1c{background:#D1FAE5;color:#065F46}
+.p2c{background:#DBEAFE;color:#1E40AF}
+.p3c{background:#FEF3C7;color:#92400E}
+.p4c{background:#EDE9FE;color:#5B21B6}
+.p1b{background:var(--acc)}
+.p2b{background:var(--blu)}
+.p3b{background:var(--ora)}
+.p4b{background:var(--pur)}
+.fp{height:32px}
+.lsm{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.info-banner{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:10px;font-size:13px;line-height:1.5}
+.info-banner.warn{background:#FEF9C3;color:#854D0E}
+.info-banner.ok{background:#DCFCE7;color:#166534}
+.info-banner.blue{background:#DBEAFE;color:#1E40AF}
+
+/* PWA install banner */
+#pwa-banner{display:none;position:fixed;bottom:0;left:0;right:0;max-width:430px;margin:0 auto;background:var(--text);color:#fff;padding:14px 18px;z-index:1000;border-radius:16px 16px 0 0;box-shadow:0 -4px 20px rgba(0,0,0,.15)}
+#pwa-banner.show{display:block}
+</style>
+</head>
+<body>
+
+<!-- PWA Install Banner (iOS) -->
+<div id="pwa-banner">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+    <div style="font-weight:700;font-size:15px">Als App installieren</div>
+    <button onclick="dismissBanner()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1;padding:0 0 0 12px">×</button>
+  </div>
+  <div style="font-size:13px;opacity:.85;line-height:1.5">Tippe auf <strong>Teilen</strong> (↑) und dann <strong>„Zum Home-Bildschirm"</strong> — dann läuft die App wie eine native App, ohne Browser-Chrome.</div>
+</div>
+
+<!-- SETUP (first run) -->
+<div id="s-setup" class="scr">
+  <div class="body" style="display:flex;flex-direction:column;justify-content:center;min-height:100vh">
+    <div style="text-align:center;margin-bottom:32px">
+      <div style="font-size:64px;margin-bottom:12px">🦶</div>
+      <div style="font-size:24px;font-weight:800;margin-bottom:6px">OSG Reha</div>
+      <div style="font-size:14px;color:var(--muted)">Evidenzbasiertes Rehaprogramm nach Supinationstrauma</div>
+    </div>
+    <div class="card">
+      <div class="lsm" style="margin-bottom:8px">Datum des Traumas</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Wird verwendet, um die Trainingssteuerung zeitlich einzuordnen.</div>
+      <input type="date" id="setup-date" max="">
+      <button class="btn btp" onclick="saveSetup()" style="margin-top:16px">Reha starten →</button>
+    </div>
+    <div class="fp"></div>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="s-home" class="scr on"><div class="body" id="home-body"></div></div>
+
+<!-- CHECKIN -->
+<div id="s-checkin" class="scr">
+  <div class="hdr"><button class="hdr-back" onclick="go('home')">←</button><h2>Check-in</h2></div>
+  <div class="body">
+    <div class="dots" id="ci-dots"></div>
+    <div id="ci-body"></div>
+  </div>
+</div>
+
+<!-- OVERVIEW -->
+<div id="s-overview" class="scr">
+  <div class="hdr"><button class="hdr-back" onclick="go('home')">←</button><h2 id="ov-title">Heutiges Training</h2><span id="ov-pill"></span></div>
+  <div class="body">
+    <div id="ov-banner" class="card csm"></div>
+    <div id="ex-list"></div>
+    <button class="btn btp" onclick="startWorkout()" style="margin-top:6px">Training starten →</button>
+    <div class="fp"></div>
+  </div>
+</div>
+
+<!-- EXERCISE -->
+<div id="s-exercise" class="scr">
+  <div class="hdr">
+    <button class="hdr-back" onclick="abortWo()">✕</button>
+    <h2 id="exp-lbl">Übung 1/6</h2>
+    <span id="ex-xp" style="font-size:13px;color:var(--acc);font-weight:700"></span>
+  </div>
+  <div class="body">
+    <div style="margin-bottom:14px"><div class="pbw"><div class="pbf p1b" id="ex-pf" style="width:0%"></div></div></div>
+    <div class="exac">
+      <div class="exbi" id="ex-ico"></div>
+      <div class="extt" id="ex-nm"></div>
+      <div class="exd" id="ex-dsc"></div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Sätze</div>
+      <div class="sets" id="sets-row"></div>
+      <div id="ex-tgt" style="font-size:13px;background:var(--bg);border-radius:8px;padding:8px 12px;color:var(--muted)"></div>
+    </div>
+    <button class="btn btp" id="ex-btn" style="margin-top:14px">Satz abgeschlossen ✓</button>
+    <button class="btn btg" onclick="skipEx()">Übung überspringen</button>
+    <div class="fp"></div>
+  </div>
+</div>
+
+<!-- REST -->
+<div id="s-rest" class="scr">
+  <div class="hdr"><button class="hdr-back" onclick="skipRest()">Überspringen</button><h2>Pause</h2></div>
+  <div class="body" style="text-align:center">
+    <p style="color:var(--muted);font-size:14px">Nächster Satz in</p>
+    <div class="tring">
+      <svg width="186" height="186">
+        <circle cx="93" cy="93" r="85" fill="none" stroke="var(--acc)" stroke-width="8"
+          stroke-dasharray="534" stroke-dashoffset="0" id="t-circle" stroke-linecap="round"/>
+      </svg>
+      <div class="tnum" id="t-num">60</div>
+      <div class="tlbl">Sekunden</div>
+    </div>
+    <p id="rest-hint" style="font-size:14px;color:var(--muted);margin-bottom:20px"></p>
+    <button class="btn btp" onclick="skipRest()" style="max-width:280px;margin:0 auto">Jetzt weitermachen →</button>
+    <div class="fp"></div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div id="s-summary" class="scr">
+  <div class="body" style="text-align:center">
+    <div class="sico">🏆</div>
+    <div class="xpg" id="sum-xp">+0 XP</div>
+    <div class="xpl">Workout abgeschlossen!</div>
+    <div class="card" style="text-align:left"><div class="lsm" style="margin-bottom:12px">Zusammenfassung</div><div id="sum-stats"></div></div>
+    <div id="sum-phase" class="card" style="text-align:left;margin-top:10px"></div>
+    <div style="margin-top:16px">
+      <div style="font-weight:600;font-size:14px;margin-bottom:12px">Wie war das Training?</div>
+      <div class="opts" id="fb-opts">
+        <div class="opt" onclick="selFb(this,'zu leicht')"><span class="oi">😴</span>Zu leicht</div>
+        <div class="opt" onclick="selFb(this,'gut')"><span class="oi">💪</span>Gut</div>
+        <div class="opt" onclick="selFb(this,'intensiv')"><span class="oi">🔥</span>Intensiv</div>
+      </div>
+    </div>
+    <button class="btn btp" onclick="finishWo()" style="margin-top:16px">Speichern & zurück</button>
+    <div class="fp"></div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div id="s-history" class="scr">
+  <div class="hdr"><button class="hdr-back" onclick="go('home')">←</button><h2>Trainings-Verlauf</h2></div>
+  <div class="body"><div id="hist-list"></div><div class="fp"></div></div>
+</div>
+
+<!-- PHASE INFO -->
+<div id="s-phase" class="scr">
+  <div class="hdr"><button class="hdr-back" onclick="go('home')">←</button><h2 id="ph-title">Phase</h2></div>
+  <div class="body"><div id="ph-body"></div><div class="fp"></div></div>
+</div>
+
+<!-- SETTINGS -->
+<div id="s-settings" class="scr">
+  <div class="hdr"><button class="hdr-back" onclick="go('home')">←</button><h2>Einstellungen</h2></div>
+  <div class="body">
+    <div class="card">
+      <div class="lsm" style="margin-bottom:8px">Datum des Traumas</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Beeinflusst die zeitliche Trainingssteuerung in Phase 1.</div>
+      <input type="date" id="settings-date" max="">
+      <button class="btn btp" onclick="saveSettingsDate()" style="margin-top:12px">Speichern</button>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div class="lsm" style="margin-bottom:8px">Daten sichern / übertragen</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Export vor App-Updates empfohlen. Beim Import werden alle aktuellen Daten ersetzt.</div>
+      <button class="btn btg" onclick="exportData()">📤 Exportieren (JSON)</button>
+      <label class="btn btg" style="cursor:pointer;margin-top:8px;display:block;text-align:center;padding:15px;border-radius:12px;font-size:15px;font-weight:600;border:1px solid var(--border)">
+        📥 Importieren (JSON)
+        <input type="file" accept=".json" onchange="importData(event)" style="display:none">
+      </label>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div class="lsm" style="margin-bottom:8px">Zurücksetzen</div>
+      <button class="btn bts" onclick="resetApp()">App zurücksetzen (alle Daten löschen)</button>
+    </div>
+    <div class="fp"></div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────
+
+const CAT_COL={mobility:'#10B981',strength_ankle:'#3B82F6',strength_knee:'#F97316',strength_hip:'#8B5CF6',balance:'#EC4899',sport:'#EF4444'};
+const CAT_LBL={mobility:'Mobilisation',strength_ankle:'Sprunggelenk',strength_knee:'Knie',strength_hip:'Hüfte',balance:'Balance',sport:'Sportspezifisch'};
+const LVL=['Frisch verletzt','Reha-Rookie','Aufbau-Athlete','Comeback-Kid','OSG-Champ','Return to Sport'];
+
+const CI_CRITERIA = {
+  1: {
+    q: 'Kannst du normal gehen, wenn auch langsam?',
+    sub: 'Schmerzfreies Gehen ist Voraussetzung für Theraband & Wadenheben',
+    yes: 'Ja, geht',
+    no: 'Nein, noch schmerzhaft',
+    yesIco: '🚶',
+    noIco: '🛑',
+    gateCategory: 'strength_ankle'
+  },
+  2: {
+    q: 'Einbeinstand 30 Sek auf dem verletzten Fuß möglich?',
+    sub: 'Kontrollfrage für Übergangsbereitschaft zu Phase 3',
+    yes: 'Ja, stabil',
+    no: 'Noch nicht',
+    yesIco: '✅',
+    noIco: '⚠️',
+    gateCategory: null
+  },
+  3: {
+    q: 'Sprünge und Hüpfen ohne Schmerz möglich?',
+    sub: 'Voraussetzung für den Sportblock',
+    yes: 'Ja, schmerzfrei',
+    no: 'Noch nicht',
+    yesIco: '🚀',
+    noIco: '⚠️',
+    gateCategory: 'sport'
+  },
+  4: {
+    q: 'Orthopädische Freigabe für sportliche Vollbelastung?',
+    sub: 'Return to Sport Phase',
+    yes: 'Freigabe erteilt',
+    no: 'Noch ausstehend',
+    yesIco: '✅',
+    noIco: '⏳',
+    gateCategory: 'sport'
+  }
+};
+
+const PH = {
+  1:{name:'Mobilisation',sub:'Beweglichkeit & erste Belastung',wks:'Woche 1–3',bc:'p1b',pc:'p1c',ico:'🦶',
+    desc:'Schwellung reduzieren, Bewegungsumfang herstellen, vorsichtige Belastung einleiten. 2×/Woche, mind. 2 Tage Pause.',
+    ex:[
+      {id:'fe',nm:'Flex & Extension',ic:'↕️',cat:'mobility',s:3,r:'20 Wdh',xp:15,
+       d:'Fuß maximal dorsal flektieren (Zehen zum Schienbein), dann plantarflektieren (strecken). Voller ROM, langsames Tempo, kein Schwung.'},
+      {id:'xp',nm:'X-Pattern',ic:'✖️',cat:'mobility',s:3,r:'10 Wdh',xp:15,
+       d:'Inversion+Plantarflexion → Eversion+Dorsalflexion im Wechsel. Aktiv geführt, kein Schwung. Leichter Schmerz tolerierbar.'},
+      {id:'ca',nm:'CARs Sprunggelenk',ic:'🔄',cat:'mobility',s:3,r:'5 je Richtung',xp:15,
+       d:'Langsame Kreisbewegung, größtmöglicher Umfang, aktiv kontrolliert. 5× im Uhrzeigersinn, 5× dagegen.'},
+      {id:'ws',nm:'Gewichtsverlagerung',ic:'⚖️',cat:'balance',s:3,r:'30 Sek',xp:15,
+       d:'Im Stand Gewicht auf verletzten Fuß verlagern, halten. Steigerung: Augen schließen. Bis Ermüdung, nicht bis Schmerz.'},
+      {id:'te',nm:'Theraband Eversion',ic:'↔️',cat:'strength_ankle',s:3,r:'20–30 Wdh',xp:20,
+       d:'Band am Außenrist, Fuß nach außen gegen Widerstand (evertieren), 2 Sek halten, langsam zurück. Nur wenn schmerzfreies Gehen möglich.',
+       req:'canWalk'},
+      {id:'cb',nm:'Wadenheben beidbeinig',ic:'🏋️',cat:'strength_ankle',s:3,r:'15–20 Wdh',xp:20,
+       d:'Beide Füße schulterbreit, Zehenspitzen heben. 2 Sek oben, 3 Sek kontrolliert senken. Nur wenn schmerzfreies Gehen möglich.',
+       req:'canWalk'}
+    ],
+    tr:['Schmerzfreies Gehen (NRS ≤ 1/10)','Beidbeiniges Wadenheben 3×20 vollständig schmerzfrei','Einbeinstand (verletzter Fuß) ≥ 30 Sekunden','Keine Schwellung nach Belastung']},
+
+  2:{name:'Aufbau',sub:'Kraft & Koordination',wks:'Woche 3–7',bc:'p2b',pc:'p2c',ico:'💪',
+    desc:'Muskelkraft aufbauen, Propriozeption trainieren, funktionelle Bewegungsmuster einüben. 2×/Woche.',
+    ex:[
+      {id:'fewu',nm:'Flex & Extension (WU)',ic:'↕️',cat:'mobility',s:2,r:'20 Wdh',xp:10,d:'Wie Phase 1, als kurzes Warm-up. 2 Sätze.'},
+      {id:'cawu',nm:'CARs (WU)',ic:'🔄',cat:'mobility',s:2,r:'5 je Richtung',xp:10,d:'Wie Phase 1, als Warm-up.'},
+      {id:'tei',nm:'Theraband Ev + Inv',ic:'↔️',cat:'strength_ankle',s:3,r:'25 Wdh je',xp:25,
+       d:'Erst Eversion (Band außen), dann Inversion (Band innen). Kontrolliert, nicht zu schnell.'},
+      {id:'cu',nm:'Wadenheben einbeinig',ic:'🦵',cat:'strength_ankle',s:3,r:'15 Wdh',xp:25,
+       d:'Einbeinig, 2 Sek hoch, 3 Sek runter. Bei Schmerz noch beidbeinig. Optional auf Stepper.'},
+      {id:'sd',nm:'Step Downs',ic:'⬇️',cat:'strength_knee',s:3,r:'12 Wdh',xp:25,
+       d:'Auf Stufe stehen (verletzter Fuß), freies Bein kontrolliert absenken, zurück. Knie über Fuß.'},
+      {id:'ss',nm:'Split Squats',ic:'🏃',cat:'strength_knee',s:3,r:'10 je Seite',xp:25,
+       d:'Ausfallschritt-Position, Knie ca. 90°, Rumpf aufrecht. Was schmerzfrei geht.'},
+      {id:'ht',nm:'Hip Thrusts',ic:'🍑',cat:'strength_hip',s:3,r:'15 Wdh',xp:25,
+       d:'Schultern auf Bank, Hüfte heben bis Körper gerade, Gesäß anspannen, 1 Sek halten.'},
+      {id:'rl',nm:'RDLs',ic:'🏋️',cat:'strength_hip',s:3,r:'12 Wdh',xp:25,
+       d:'Rücken gerade, Hüfte nach hinten, bis leichte Dehnung, dann hoch.'},
+      {id:'yb',nm:'Y Balance',ic:'⭐',cat:'balance',s:3,r:'30–60 Sek je Bein',xp:20,
+       d:'Einbeinstand auf verletztem Fuß, freies Bein in 3 Richtungen tippen.'}
+    ],
+    tr:['Einbeiniges Wadenheben 3×15 vollständig schmerzfrei','Einbeinstand (verletzter Fuß) ≥ 60 Sekunden','Kein Schwellungsanstieg nach Training','Split Squat links/rechts ohne Schmerz und symmetrisch']},
+
+  3:{name:'Funktionell',sub:'Sportartspezifisch & Sprünge',wks:'Woche 7–12',bc:'p3b',pc:'p3c',ico:'🏃',
+    desc:'Return-to-Sport vorbereiten. Explosives Training, Richtungswechsel, Sprünge. Relevant für Padel und Fußball.',
+    ex:[
+      {id:'cst',nm:'Wadenheben Stepper einbeinig',ic:'🦵',cat:'strength_ankle',s:3,r:'15 Wdh',xp:30,
+       d:'Einbeinig auf Stepper. Voller Range: Ferse tief absenken, dann maximal heben. 3 Sek exzentrisch.'},
+      {id:'ffe',nm:'FFE Split Squat',ic:'🏔️',cat:'strength_knee',s:3,r:'10 je Seite',xp:30,
+       d:'Vorderfuß auf Erhöhung (~10cm). Tiefe Kniebeuge, maximale Dorsalflexion. Wichtig für Padel-Bewegungen.'},
+      {id:'slr',nm:'Single Leg RDL',ic:'🦅',cat:'strength_hip',s:3,r:'10 je Seite',xp:30,
+       d:'Einbeiniges Kreuzheben auf verletztem Fuß stehend, freies Bein nach hinten, Oberkörper vor.'},
+      {id:'ahb',nm:'Ankle Hops beidbeinig',ic:'⬆️',cat:'sport',s:3,r:'20–30 Wdh',xp:35,
+       d:'Kleine, schnelle Sprünge auf Zehenspitzen. Nur Knöchel arbeitet, Knie minimal gebeugt.'},
+      {id:'cmj',nm:'Counter Movement Jump',ic:'🚀',cat:'sport',s:3,r:'6 Wdh',xp:35,
+       d:'Kurzes Einknicken, explosiv abspringen. Weiche Landung, sofort Kontrolle. Nur bei Schmerz ≤ 1.'},
+      {id:'sbc',nm:'Single Leg Balance Circle',ic:'🎯',cat:'balance',s:3,r:'30–60 Sek je Bein',xp:25,
+       d:'Einbeinstand, freies Bein zeichnet Kreis. Rumpf stabil. Steigerung: Augen zu.'}
+    ],
+    tr:['Ankle Hops beidbeinig 3×30 vollständig schmerzfrei','CMJ ohne Schmerz und ohne Kompensation','Schwellung = 0 nach Training','Subjektive Sicherheit ≥ 8/10']},
+
+  4:{name:'Return to Sport',sub:'Volle sportliche Belastung',wks:'Ab Woche 12',bc:'p4b',pc:'p4c',ico:'🏆',
+    desc:'Volle Rückkehr zu Padel, Fußball, Flag Football. Freigabe durch Orthopäde/Physio empfohlen.',
+    ex:[
+      {id:'ahu',nm:'Ankle Hops einbeinig',ic:'⬆️',cat:'sport',s:3,r:'20 Wdh je Bein',xp:40,d:'Einbeinig. Mit verletztem Fuß starten.'},
+      {id:'dj',nm:'Depth Jump',ic:'💥',cat:'sport',s:3,r:'6 Wdh',xp:45,d:'Von Box (30cm), sofort nach Landung abspringen. Minimaler Bodenkontakt.'},
+      {id:'lb',nm:'Lateral Bounds',ic:'↔️',cat:'sport',s:3,r:'8 je Seite',xp:45,d:'Seitliche Sprünge, Landung einbeinig. 1 Sek halten, zurück.'},
+      {id:'sp',nm:'Sportartspezifisch',ic:'🎾',cat:'sport',s:2,r:'10 Minuten',xp:60,d:'Padel-Grundbewegungen, Richtungswechsel. Kein Wettkampf.'}
+    ],
+    tr:['Freigabe durch Orthopäde / Physio']}
+};
+
+// ── STATE ─────────────────────────────────────────
+
+const SK='osg_reha_v4';
+function ldSt(){try{const s=localStorage.getItem(SK);if(s)return JSON.parse(s)}catch(e){}return{phase:1,xp:0,lastWo:null,wos:[],traumaDate:null}}
+function svSt(){try{localStorage.setItem(SK,JSON.stringify(ST))}catch(e){}}
+let ST=ldSt();
+let SES=null,rtimer=null,ciStep=0,ciAns={},curExI=0,selFbVal=null;
+
+// ── PWA ───────────────────────────────────────────
+
+if('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+
+function showBannerIfNeeded() {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true;
+  const dismissed = localStorage.getItem('pwa_banner_dismissed');
+  if (isIOS && !isStandalone && !dismissed) {
+    document.getElementById('pwa-banner').classList.add('show');
+  }
+}
+
+function dismissBanner() {
+  document.getElementById('pwa-banner').classList.remove('show');
+  localStorage.setItem('pwa_banner_dismissed', '1');
+}
+
+// ── INIT ──────────────────────────────────────────
+
+function init(){
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('setup-date').max=today;
+  document.getElementById('setup-date').value=today;
+  document.getElementById('settings-date').max=today;
+
+  if(!ST.traumaDate){
+    go('setup');
+  } else {
+    document.getElementById('settings-date').value=ST.traumaDate;
+    go('home');
+    showBannerIfNeeded();
+  }
+}
+
+// ── SETUP ─────────────────────────────────────────
+
+function saveSetup(){
+  const d=document.getElementById('setup-date').value;
+  if(!d)return;
+  ST.traumaDate=d;
+  svSt();
+  go('home');
+  showBannerIfNeeded();
+}
+
+function saveSettingsDate(){
+  const d=document.getElementById('settings-date').value;
+  if(!d)return;
+  ST.traumaDate=d;
+  svSt();
+  alert('Traumadatum gespeichert.');
+  go('home');
+}
+
+function resetApp(){
+  if(confirm('Alle Daten löschen und App zurücksetzen?')){
+    localStorage.removeItem(SK);
+    ST={phase:1,xp:0,lastWo:null,wos:[],traumaDate:null};
+    init();
+  }
+}
+
+// ── TIME HELPERS ──────────────────────────────────
+
+function getDaysPostTrauma(){
+  if(!ST.traumaDate)return 999;
+  return Math.max(1,Math.floor((Date.now()-new Date(ST.traumaDate))/864e5)+1);
+}
+
+function getSubPhaseLabel(){
+  if(ST.phase!==1)return null;
+  const d=getDaysPostTrauma();
+  if(d<=3)return{label:'Akutphase (Tag 1–3)',color:'var(--red)',hint:'Nur Mobilisation — Theraband & Wadenheben noch nicht.'};
+  return{label:'Subakut',color:'var(--acc)',hint:'Theraband & Wadenheben freischaltbar wenn Gehen möglich.'};
+}
+
+// ── NAVIGATION ────────────────────────────────────
+
+function go(n){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s-'+n).classList.add('on');
+  if(n==='home')renderHome();
+  if(n==='history')renderHist();
+  if(n==='phase')renderPhase();
+  if(n==='settings')document.getElementById('settings-date').value=ST.traumaDate||'';
+}
+
+// ── HOME ──────────────────────────────────────────
+
+function renderHome(){
+  const p=PH[ST.phase],lv=Math.floor(ST.xp/1000),xt=ST.xp%1000;
+  const lvt=LVL[Math.min(lv,LVL.length-1)];
+  const str=calcStr(),last=ST.wos.length?ST.wos[ST.wos.length-1]:null;
+  const canTr=canTrain(),days=getDaysPostTrauma(),sub=getSubPhaseLabel();
+
+  document.getElementById('home-body').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:22px;font-weight:800">OSG Reha 🦶</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px">${lvt} · Level ${lv+1}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btg" style="width:auto;padding:8px 12px;font-size:13px" onclick="go('history')">Verlauf</button>
+        <button class="btn btg" style="width:auto;padding:8px 12px;font-size:13px" onclick="go('settings')">⚙</button>
+      </div>
+    </div>
+
+    <div class="card" style="cursor:pointer" onclick="go('phase')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div>
+          <div class="lsm" style="margin-bottom:4px">Aktuelle Phase</div>
+          <div style="font-size:19px;font-weight:800">${p.ico} Phase ${ST.phase} · ${p.name}</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px">${p.sub} · ${p.wks}</div>
+        </div>
+        <span style="font-size:18px;color:var(--muted)">›</span>
+      </div>
+      <div class="lsm" style="margin-bottom:6px">XP dieses Level</div>
+      <div class="pbw"><div class="pbf ${p.bc}" style="width:${xt/10}%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px">
+        <span>${xt} / 1000 XP</span><span>Level ${lv+1}</span>
+      </div>
+    </div>
+
+    ${sub?`<div class="info-banner ${getDaysPostTrauma()<=3?'warn':'ok'}">
+      <span style="font-size:18px">${getDaysPostTrauma()<=3?'⚠️':'✅'}</span>
+      <div>
+        <div style="font-weight:600">Tag ${days} nach Trauma · ${sub.label}</div>
+        <div style="margin-top:2px;opacity:.85">${sub.hint}</div>
+      </div>
+    </div>`:''}
+
+    <div class="stats">
+      <div class="stat"><div class="sv">⚡${ST.xp}</div><div class="sl">Gesamt-XP</div></div>
+      <div class="stat"><div class="sv">${str>0?'🔥':'💤'}${str}</div><div class="sl">Streak</div></div>
+      <div class="stat"><div class="sv">🏋️${ST.wos.length}</div><div class="sl">Workouts</div></div>
+    </div>
+
+    ${last?`<div class="card csm">
+      <div class="lsm" style="margin-bottom:6px">Letztes Training</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:600;font-size:14px">${fmtDate(last.dt)}</div>
+          <div style="color:var(--muted);font-size:12px;margin-top:2px">${last.exDone} Übungen · Phase ${last.ph} · ${last.int}</div>
+        </div>
+        <div style="font-weight:800;color:var(--acc)">+${last.xp} XP</div>
+      </div></div>`
+    :`<div class="card csm" style="text-align:center;color:var(--muted);font-size:14px">Noch kein Training aufgezeichnet</div>`}
+
+    ${canTr
+      ?`<button class="btn btp" onclick="startCI()">Training starten →</button>`
+      :`<div class="card csm" style="text-align:center">
+          <div style="font-size:18px">✅</div>
+          <div style="font-weight:600;margin-top:4px">Heute bereits trainiert</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px">Mind. 2 Tage Pause empfohlen</div>
+        </div>
+        <button class="btn btg" onclick="startCI()">Trotzdem trainieren</button>`}
+
+    ${ST.phase<4?`<div class="card csm">
+      <div class="lsm" style="margin-bottom:8px">Übergang → Phase ${ST.phase+1}</div>
+      ${PH[ST.phase].tr.map(c=>`<div style="display:flex;gap:8px;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)"><span>⬜</span><span>${c}</span></div>`).join('')}
+      <button class="btn btg" style="margin-top:10px;font-size:13px" onclick="advPh()">Kriterien erfüllt → Phase ${ST.phase+1} freischalten</button>
+    </div>`:''}
+    <div class="fp"></div>`;
+}
+
+function canTrain(){if(!ST.lastWo)return true;return(Date.now()-new Date(ST.lastWo))/864e5>=2}
+function calcStr(){
+  if(!ST.wos.length)return 0;
+  const s=[...ST.wos].sort((a,b)=>new Date(b.dt)-new Date(a.dt));
+  let str=0,chk=new Date();chk.setHours(0,0,0,0);
+  for(const w of s){const d=new Date(w.dt);d.setHours(0,0,0,0);const diff=(chk-d)/864e5;if(diff<=1){str++;chk=d}else break}
+  return str;
+}
+function fmtDate(iso){return new Date(iso).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'})}
+
+// ── CHECK-IN ──────────────────────────────────────
+
+const CI_STEPS_COUNT = 4;
+
+function startCI(){ciStep=0;ciAns={};go('checkin');renderCI()}
+
+function renderCI(){
+  const dc=document.getElementById('ci-dots');
+  dc.innerHTML=Array.from({length:CI_STEPS_COUNT},(_,i)=>`<div class="dot${i<ciStep?' on':''}"></div>`).join('');
+
+  const crit=CI_CRITERIA[ST.phase];
+
+  const steps=[
+    {t:'Schmerzen heute?',sub:'Am Sprunggelenk, in Ruhe oder beim Gehen',h:`
+      <div style="padding:8px 0">
+        <input type="range" min="0" max="10" step="1" value="${ciAns.pain??2}" id="psl" oninput="upPain(this.value)">
+        <div class="sll"><span>0 kein Schmerz</span><span>10 maximal</span></div>
+      </div>
+      <div style="text-align:center;font-size:36px;margin:16px 0" id="p-emo">${pEmo(ciAns.pain??2)}</div>
+      <div style="text-align:center;font-size:18px;font-weight:700" id="p-val">${ciAns.pain??2}/10</div>`},
+    {t:'Schwellung heute?',sub:'Im Vergleich zu gestern',h:`
+      <div class="opts">
+        ${['besser','gleich','schlechter'].map((v,i)=>`
+          <div class="opt${ciAns.sw===v?' sel':''}" onclick="selOpt('sw','${v}')">
+            <span class="oi">${['📉','➡️','📈'][i]}</span>${v[0].toUpperCase()+v.slice(1)}
+          </div>`).join('')}
+      </div>`},
+    {t:'Energie heute?',sub:'Körperliche Bereitschaft',h:`
+      <div class="opts">
+        ${['niedrig','okay','fit'].map((v,i)=>`
+          <div class="opt${ciAns.en===v?' sel':''}" onclick="selOpt('en','${v}')">
+            <span class="oi">${['🪫','⚡','🚀'][i]}</span>${v[0].toUpperCase()+v.slice(1)}
+          </div>`).join('')}
+      </div>`},
+    {t:crit.q,sub:crit.sub,h:`
+      <div class="opts" style="margin-top:16px">
+        <div class="opt${ciAns.crit==='ja'?' sel':''}" onclick="selOpt('crit','ja')">
+          <span class="oi">${crit.yesIco}</span>${crit.yes}
+        </div>
+        <div class="opt${ciAns.crit==='nein'?' sel-no sel':''}" onclick="selOpt('crit','nein')">
+          <span class="oi">${crit.noIco}</span>${crit.no}
+        </div>
+      </div>
+      ${ciAns.crit==='nein'&&crit.gateCategory?`
+        <div class="info-banner warn" style="margin-top:12px">
+          <span>⚠️</span>
+          <div style="font-size:13px">Kategorie <strong>${CAT_LBL[crit.gateCategory]}</strong> wird heute aus dem Workout entfernt.</div>
+        </div>`:''}
+      ${ciAns.crit==='ja'?`
+        <div class="info-banner ok" style="margin-top:12px">
+          <span>✅</span>
+          <div style="font-size:13px">Volles Workout dieser Phase verfügbar.</div>
+        </div>`:''}
+    `}
+  ];
+
+  const st=steps[ciStep];
+  document.getElementById('ci-body').innerHTML=`
+    <div class="card" style="margin-bottom:16px">
+      <div class="lsm" style="margin-bottom:8px">Frage ${ciStep+1} von ${CI_STEPS_COUNT}</div>
+      <div style="font-size:18px;font-weight:700;margin-bottom:4px">${st.t}</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px">${st.sub}</div>
+      ${st.h}
+    </div>
+    <button class="btn btp" onclick="nextCI()">${ciStep<CI_STEPS_COUNT-1?'Weiter →':'Workout laden →'}</button>
+    ${ciStep>0?'<button class="btn btg" onclick="prevCI()">← Zurück</button>':''}`;
+}
+
+function pEmo(v){return['😊','😊','🙂','🙂','😐','😐','😕','😟','😫','😣','😭'][Math.min(parseInt(v),10)]}
+function upPain(v){ciAns.pain=parseInt(v);document.getElementById('p-val').textContent=v+'/10';document.getElementById('p-emo').textContent=pEmo(v)}
+function selOpt(k,v){ciAns[k]=v;renderCI()}
+
+function nextCI(){
+  if(ciStep===0){const sl=document.getElementById('psl');ciAns.pain=sl?parseInt(sl.value):2}
+  if(ciStep===1&&!ciAns.sw)ciAns.sw='gleich';
+  if(ciStep===2&&!ciAns.en)ciAns.en='okay';
+  if(ciStep===3&&!ciAns.crit)ciAns.crit='ja';
+  ciStep++;
+  if(ciStep>=CI_STEPS_COUNT)buildWo();else renderCI();
+}
+function prevCI(){ciStep--;renderCI()}
+
+// ── BUILD WORKOUT ─────────────────────────────────
+
+function buildWo(){
+  const{pain,sw,en,crit}=ciAns;
+  const days=getDaysPostTrauma();
+  const phCrit=CI_CRITERIA[ST.phase];
+
+  let int;
+  if(pain>=6||sw==='schlechter'){
+    int='leicht';
+  } else if(pain>=3||en==='niedrig'){
+    int='moderat';
+  } else {
+    int='voll';
+  }
+
+  if(ST.phase===1&&days<=3){
+    int='leicht';
+  }
+
+  let base=PH[ST.phase].ex;
+
+  let exs;
+  if(int==='leicht'){
+    exs=base.filter(e=>e.cat==='mobility'||e.cat==='balance').map(e=>({...e,s:Math.min(e.s,2)}));
+  } else if(int==='moderat'){
+    exs=base.filter(e=>e.cat!=='sport').map(e=>({...e,s:Math.min(e.s,2)}));
+  } else {
+    exs=base.map(e=>({...e}));
+  }
+
+  if(crit==='nein'&&phCrit.gateCategory){
+    exs=exs.filter(e=>e.cat!==phCrit.gateCategory);
+  }
+
+  if(ST.phase===1){
+    const canWalk=(crit==='ja'&&days>3);
+    if(!canWalk){
+      exs=exs.filter(e=>!e.req);
+    }
+  }
+
+  if(exs.length===0){
+    exs=base.filter(e=>e.cat==='mobility').map(e=>({...e,s:2}));
+  }
+
+  SES={start:Date.now(),exs,int,ci:ciAns,done:new Array(exs.length).fill(false),setsDone:exs.map(()=>0),xp:0,fb:null};
+  renderOv();go('overview');
+}
+
+function renderOv(){
+  const{exs,int}=SES;
+  const days=getDaysPostTrauma();
+  const bm={
+    leicht:{i:'🧊',m:`Leichtes Workout · Nur Mobilisation${ST.phase===1&&days<=3?' (Akutphase Tag '+days+')':''}`,c:'var(--blu)'},
+    moderat:{i:'⚡',m:'Moderates Workout · Kraft & Mobilisation',c:'var(--yel)'},
+    voll:{i:'🔥',m:'Volles Workout · Alle Übungen',c:'var(--acc)'}
+  };
+  const b=bm[int];
+
+  document.getElementById('ov-banner').innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:24px">${b.i}</span>
+      <div>
+        <div style="font-weight:600;font-size:14px">${b.m}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${exs.length} Übungen · ca. ${exs.length*5} Min</div>
+      </div>
+    </div>`;
+
+  document.getElementById('ov-pill').innerHTML=`<span class="pill ${PH[ST.phase].pc}" style="font-size:11px">Phase ${ST.phase}</span>`;
+  document.getElementById('ex-list').innerHTML=exs.map((e,i)=>`
+    <div class="exi" id="ei${i}">
+      <div class="exic" style="background:${CAT_COL[e.cat]}22;color:${CAT_COL[e.cat]}">${e.ic}</div>
+      <div class="exin"><div class="exn">${e.nm}</div><div class="exm">${e.s}×${e.r} · ${CAT_LBL[e.cat]}</div></div>
+      <div class="exck" id="ec${i}"></div>
+    </div>`).join('');
+}
+
+// ── EXERCISE ──────────────────────────────────────
+
+function startWorkout(){curExI=0;go('exercise');renderEx()}
+
+function renderEx(){
+  const e=SES.exs[curExI],tot=SES.exs.length,sd=SES.setsDone[curExI];
+  document.getElementById('exp-lbl').textContent=`Übung ${curExI+1} / ${tot}`;
+  document.getElementById('ex-pf').style.width=`${(curExI/tot)*100}%`;
+  document.getElementById('ex-xp').textContent=`⚡ ${SES.xp}`;
+  document.getElementById('ex-ico').textContent=e.ic;
+  document.getElementById('ex-nm').textContent=e.nm;
+  document.getElementById('ex-dsc').textContent=e.d;
+  document.getElementById('ex-tgt').textContent=`Ziel: ${e.s} Sätze × ${e.r}`;
+  document.getElementById('sets-row').innerHTML=Array.from({length:e.s},(_,i)=>{
+    const done=i<sd,cur=i===sd;
+    return`<div class="sb${done?' done':cur?' cur':''}">${done?'✓':i+1}</div>`;
+  }).join('');
+  const btn=document.getElementById('ex-btn');
+  if(sd>=e.s){btn.textContent='Weiter →';btn.onclick=nextEx}
+  else{btn.textContent=`Satz ${sd+1} abgeschlossen ✓`;btn.onclick=markSet}
+}
+
+function markSet(){
+  const e=SES.exs[curExI];
+  SES.setsDone[curExI]++;SES.xp+=e.xp;floatXP(e.xp);
+  if(SES.setsDone[curExI]>=e.s){SES.done[curExI]=true;renderEx();return}
+  renderEx();showRest(e);
+}
+
+function nextEx(){
+  const el=document.getElementById('ei'+curExI);if(el)el.classList.add('done');
+  const ck=document.getElementById('ec'+curExI);if(ck){ck.classList.add('done');ck.textContent='✓'}
+  curExI++;
+  if(curExI>=SES.exs.length)showSum();else renderEx();
+}
+
+function skipEx(){curExI++;if(curExI>=SES.exs.length)showSum();else renderEx()}
+function abortWo(){if(confirm('Training abbrechen?')){SES=null;go('home')}}
+function floatXP(n){const el=document.createElement('div');el.className='xpf';el.textContent=`+${n} XP`;el.style.cssText='top:40%;left:50%;transform:translateX(-50%)';document.body.appendChild(el);setTimeout(()=>el.remove(),900)}
+
+// ── REST ──────────────────────────────────────────
+
+function showRest(e){
+  const sd=SES.setsDone[curExI],isLast=sd>=e.s-1;
+  const nxt=isLast?(SES.exs[curExI+1]?`Nächste: ${SES.exs[curExI+1].nm}`:'Letzter Satz — fast fertig!'):`Nächster: Satz ${sd+1} von ${e.s}`;
+  document.getElementById('rest-hint').textContent=nxt;
+  go('rest');startRestTimer(60);
+}
+
+function startRestTimer(sec){
+  if(rtimer)clearInterval(rtimer);
+  let rem=sec;const circ=534;
+  function tick(){
+    document.getElementById('t-num').textContent=rem;
+    document.getElementById('t-circle').style.strokeDashoffset=circ*(rem/sec);
+    if(rem<=0){clearInterval(rtimer);go('exercise');renderEx()}
+    rem--;
+  }
+  tick();rtimer=setInterval(tick,1000);
+}
+function skipRest(){if(rtimer)clearInterval(rtimer);go('exercise');renderEx()}
+
+// ── SUMMARY ───────────────────────────────────────
+
+function showSum(){
+  const exDone=SES.done.filter(Boolean).length,bonus=exDone>=SES.exs.length*.8?200:0;
+  SES.xp+=bonus;
+  document.getElementById('sum-xp').textContent=`+${SES.xp} XP`;
+  const dur=Math.max(1,Math.round((Date.now()-SES.start)/60000));
+  document.getElementById('sum-stats').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div class="stat" style="border-radius:10px"><div class="sv">✅${exDone}</div><div class="sl">Übungen</div></div>
+      <div class="stat" style="border-radius:10px"><div class="sv">⏱️${dur}</div><div class="sl">Minuten</div></div>
+      <div class="stat" style="border-radius:10px"><div class="sv">⚡${SES.xp}</div><div class="sl">XP</div></div>
+    </div>`;
+  document.getElementById('sum-phase').innerHTML=`
+    <div class="lsm" style="margin-bottom:8px">Phase ${ST.phase} · Status</div>
+    <div style="font-size:14px">${ST.phase<4?`Übergangs-Kriterien prüfen wenn bereit — Details in der Phasenübersicht.`:'Freigabe durch Orthopäde/Physio für Return to Sport.'}</div>`;
+  selFbVal=null;document.querySelectorAll('#fb-opts .opt').forEach(e=>e.classList.remove('sel'));
+  go('summary');
+}
+
+function selFb(el,v){selFbVal=v;document.querySelectorAll('#fb-opts .opt').forEach(e=>e.classList.remove('sel'));el.classList.add('sel')}
+
+function finishWo(){
+  const exDone=SES.done.filter(Boolean).length,now=new Date().toISOString();
+  ST.wos.push({dt:now,ph:ST.phase,int:SES.int,exDone,xp:SES.xp,ci:SES.ci,fb:selFbVal});
+  ST.xp+=SES.xp;ST.lastWo=now;svSt();SES=null;go('home');
+}
+
+// ── HISTORY ───────────────────────────────────────
+
+function renderHist(){
+  if(!ST.wos.length){document.getElementById('hist-list').innerHTML=`<div style="text-align:center;color:var(--muted);padding:40px 0"><div style="font-size:48px;margin-bottom:12px">📋</div><div>Noch keine Workouts aufgezeichnet</div></div>`;return}
+  const tot=ST.wos.reduce((s,w)=>s+w.xp,0);
+  const items=[...ST.wos].reverse().map(w=>`
+    <div class="hi">
+      <div>
+        <div style="font-weight:600;font-size:14px">${fmtDate(w.dt)}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Phase ${w.ph} · ${w.int} · ${w.exDone} Übungen${w.fb?` · ${w.fb}`:''}</div>
+      </div>
+      <div style="font-weight:800;color:var(--acc)">+${w.xp} XP</div>
+    </div>`).join('');
+  document.getElementById('hist-list').innerHTML=`
+    <div class="card csm" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--muted);font-size:14px">Gesamt Workouts</span><span style="font-weight:700">${ST.wos.length}</span></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--muted);font-size:14px">Gesamt XP</span><span style="font-weight:700;color:var(--acc)">⚡ ${tot}</span></div>
+    </div>
+    <div class="card">${items}</div>`;
+}
+
+// ── PHASE INFO ────────────────────────────────────
+
+function renderPhase(){
+  const p=PH[ST.phase];
+  document.getElementById('ph-title').textContent=`${p.ico} Phase ${ST.phase} · ${p.name}`;
+  const exl=p.ex.map(e=>`
+    <div class="exi" style="cursor:default">
+      <div class="exic" style="background:${CAT_COL[e.cat]}22;color:${CAT_COL[e.cat]}">${e.ic}</div>
+      <div class="exin">
+        <div class="exn">${e.nm}${e.req?` <span style="font-size:11px;color:var(--acc);font-weight:700">ab canWalk</span>`:''}</div>
+        <div class="exm">${e.s}×${e.r} · ${CAT_LBL[e.cat]}</div>
+      </div>
+    </div>`).join('');
+  const crit=p.tr.map(c=>`
+    <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px">
+      <span style="margin-top:1px;flex-shrink:0">⬜</span><span>${c}</span>
+    </div>`).join('');
+  document.getElementById('ph-body').innerHTML=`
+    <div class="card" style="margin-bottom:10px">
+      <div style="font-size:14px;color:var(--muted);line-height:1.5">${p.desc}</div>
+    </div>
+    <div class="lsm" style="margin:16px 0 8px">Übungen dieser Phase</div>
+    ${exl}
+    ${ST.phase<4?`<div class="card" style="margin-top:10px">
+      <div class="lsm" style="margin-bottom:8px">Übergang → Phase ${ST.phase+1}</div>
+      ${crit}
+      <button class="btn btg" style="margin-top:10px;font-size:13px" onclick="advPh()">Kriterien erfüllt → weiter</button>
+    </div>`:`<div class="card" style="margin-top:10px;text-align:center;padding:24px"><div style="font-size:32px">🏆</div><div style="font-weight:700;margin-top:8px">Return to Sport</div><div style="font-size:13px;color:var(--muted);margin-top:4px">Freigabe durch Orthopäde/Physio</div></div>`}`;
+}
+
+// ── PHASE ADVANCE ─────────────────────────────────
+
+function advPh(){
+  if(ST.phase>=4)return;
+  const nx=ST.phase+1;
+  if(confirm(`Phase ${ST.phase} abschließen und Phase ${nx} (${PH[nx].name}) freischalten?\n\nNur bestätigen wenn alle Kriterien erfüllt sind.`)){
+    ST.phase=nx;ST.xp+=500;svSt();
+    alert(`🎉 Phase ${nx}: ${PH[nx].name} freigeschaltet! +500 XP Bonus!`);go('home');
+  }
+}
+
+// ── EXPORT / IMPORT ───────────────────────────────
+
+function exportData(){
+  const blob=new Blob([JSON.stringify(ST,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`osg-reha-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(typeof d.phase==='number'&&Array.isArray(d.wos)){
+        ST=d;svSt();
+        alert(`✅ Import erfolgreich: ${d.wos.length} Workouts wiederhergestellt.`);
+        go('home');
+      } else {
+        alert('Ungültige Datei — kein gültiges OSG-Reha-Backup.');
+      }
+    } catch(err){alert('Fehler beim Lesen der Datei.');}
+  };
+  r.readAsText(file);
+}
+
+// ── START ─────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
