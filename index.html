@@ -176,6 +176,7 @@ input[type=date]:focus{border-color:var(--acc)}
       <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Sätze</div>
       <div class="sets" id="sets-row"></div>
       <div id="ex-tgt" style="font-size:13px;background:var(--bg);border-radius:8px;padding:8px 12px;color:var(--muted)"></div>
+      <div id="ex-timer-wrap"></div>
     </div>
     <button class="btn btp" id="ex-btn" style="margin-top:14px">Satz abgeschlossen ✓</button>
     <button class="btn btg" onclick="skipEx()">Übung überspringen</button>
@@ -190,8 +191,8 @@ input[type=date]:focus{border-color:var(--acc)}
     <p style="color:var(--muted);font-size:14px">Nächster Satz in</p>
     <div class="tring">
       <svg width="186" height="186">
-        <circle cx="93" cy="93" r="85" fill="none" stroke="var(--acc)" stroke-width="8"
-          stroke-dasharray="534" stroke-dashoffset="0" id="t-circle" stroke-linecap="round"/>
+        <circle cx="93" cy="93" r="81" fill="none" stroke="var(--acc)" stroke-width="8"
+          stroke-dasharray="509" stroke-dashoffset="0" id="t-circle" stroke-linecap="round"/>
       </svg>
       <div class="tnum" id="t-num">60</div>
       <div class="tlbl">Sekunden</div>
@@ -386,7 +387,7 @@ const SK='osg_reha_v4';
 function ldSt(){try{const s=localStorage.getItem(SK);if(s)return JSON.parse(s)}catch(e){}return{phase:1,xp:0,lastWo:null,wos:[],traumaDate:null}}
 function svSt(){try{localStorage.setItem(SK,JSON.stringify(ST))}catch(e){}}
 let ST=ldSt();
-let SES=null,rtimer=null,ciStep=0,ciAns={},curExI=0,selFbVal=null;
+let SES=null,rtimer=null,exTimer=null,ciStep=0,ciAns={},curExI=0,selFbVal=null;
 
 // ── PWA ───────────────────────────────────────────
 
@@ -732,6 +733,44 @@ function renderOv(){
 
 // ── EXERCISE ──────────────────────────────────────
 
+function parseDur(r){
+  if(r.includes('Minute')){const m=r.match(/(\d+)/);return m?parseInt(m[1])*60:null}
+  if(r.includes('Sek')){const m=r.match(/(\d+)/);return m?parseInt(m[1]):null}
+  return null;
+}
+
+function startExTimer(sec){
+  if(exTimer)clearInterval(exTimer.id);
+  exTimer={rem:sec,sec,id:null};
+  document.getElementById('ex-btn').style.display='none';
+  renderExTimerUI();
+  exTimer.id=setInterval(()=>{
+    exTimer.rem--;
+    const el=document.getElementById('ex-timer-num');
+    if(el)el.textContent=Math.max(0,exTimer.rem);
+    if(exTimer.rem<=0){clearInterval(exTimer.id);exTimer=null;markSet();}
+  },1000);
+}
+
+function cancelExTimer(){
+  if(exTimer)clearInterval(exTimer.id);
+  exTimer=null;
+  renderEx();
+}
+
+function renderExTimerUI(){
+  const wrap=document.getElementById('ex-timer-wrap');
+  if(!wrap||!exTimer)return;
+  wrap.innerHTML=`
+    <div style="text-align:center;padding:14px 0">
+      <div id="ex-timer-num" style="font-size:56px;font-weight:800;color:var(--acc);line-height:1">${exTimer.rem}</div>
+      <div style="font-size:12px;color:var(--muted);margin:4px 0 12px">Sekunden</div>
+      <button onclick="cancelExTimer()" style="border:none;background:none;font-size:13px;color:var(--muted);cursor:pointer;padding:4px 12px">✕ Abbrechen</button>
+    </div>`;
+}
+
+function clearExTimer(){if(exTimer){clearInterval(exTimer.id);exTimer=null;}}
+
 function startWorkout(){curExI=0;go('exercise');renderEx()}
 
 function renderEx(){
@@ -748,11 +787,23 @@ function renderEx(){
     return`<div class="sb${done?' done':cur?' cur':''}">${done?'✓':i+1}</div>`;
   }).join('');
   const btn=document.getElementById('ex-btn');
-  if(sd>=e.s){btn.textContent='Weiter →';btn.onclick=nextEx}
-  else{btn.textContent=`Satz ${sd+1} abgeschlossen ✓`;btn.onclick=markSet}
+  if(sd>=e.s){
+    btn.style.display='';btn.textContent='Weiter →';btn.onclick=nextEx;
+    document.getElementById('ex-timer-wrap').innerHTML='';
+  } else {
+    const dur=parseDur(e.r);
+    btn.style.display='';btn.textContent=`Satz ${sd+1} abgeschlossen ✓`;btn.onclick=markSet;
+    const wrap=document.getElementById('ex-timer-wrap');
+    if(dur){
+      wrap.innerHTML=`<button onclick="startExTimer(${dur})" class="btn btg" style="margin-top:10px;font-size:14px">⏱ ${dur < 60 ? dur+' Sek' : dur/60+' Min'} Timer</button>`;
+    } else {
+      wrap.innerHTML='';
+    }
+  }
 }
 
 function markSet(){
+  clearExTimer();
   const e=SES.exs[curExI];
   SES.setsDone[curExI]++;SES.xp+=e.xp;floatXP(e.xp);
   if(SES.setsDone[curExI]>=e.s){SES.done[curExI]=true;renderEx();return}
@@ -766,8 +817,8 @@ function nextEx(){
   if(curExI>=SES.exs.length)showSum();else renderEx();
 }
 
-function skipEx(){curExI++;if(curExI>=SES.exs.length)showSum();else renderEx()}
-function abortWo(){if(confirm('Training abbrechen?')){SES=null;go('home')}}
+function skipEx(){clearExTimer();curExI++;if(curExI>=SES.exs.length)showSum();else renderEx()}
+function abortWo(){if(confirm('Training abbrechen?')){clearExTimer();SES=null;go('home')}}
 function floatXP(n){const el=document.createElement('div');el.className='xpf';el.textContent=`+${n} XP`;el.style.cssText='top:40%;left:50%;transform:translateX(-50%)';document.body.appendChild(el);setTimeout(()=>el.remove(),900)}
 
 // ── REST ──────────────────────────────────────────
@@ -781,7 +832,7 @@ function showRest(e){
 
 function startRestTimer(sec){
   if(rtimer)clearInterval(rtimer);
-  let rem=sec;const circ=534;
+  let rem=sec;const circ=509;
   function tick(){
     document.getElementById('t-num').textContent=rem;
     document.getElementById('t-circle').style.strokeDashoffset=circ*(1-(rem/sec));
