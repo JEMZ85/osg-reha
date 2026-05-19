@@ -185,7 +185,7 @@ input[type=date]:focus{border-color:var(--acc)}
 
 <!-- REST -->
 <div id="s-rest" class="scr">
-  <div class="hdr"><button class="hdr-back" onclick="skipRest()">Überspringen</button><h2>Pause</h2></div>
+  <div class="hdr"><h2 style="flex:1">Pause</h2><button onclick="skipRest()" style="border:none;background:none;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;padding:6px 0">Überspringen</button></div>
   <div class="body" style="text-align:center">
     <p style="color:var(--muted);font-size:14px">Nächster Satz in</p>
     <div class="tring">
@@ -784,7 +784,7 @@ function startRestTimer(sec){
   let rem=sec;const circ=534;
   function tick(){
     document.getElementById('t-num').textContent=rem;
-    document.getElementById('t-circle').style.strokeDashoffset=circ*(rem/sec);
+    document.getElementById('t-circle').style.strokeDashoffset=circ*(1-(rem/sec));
     if(rem<=0){clearInterval(rtimer);go('exercise');renderEx()}
     rem--;
   }
