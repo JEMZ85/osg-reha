@@ -562,8 +562,10 @@ function canTrain(){if(!ST.lastWo)return true;return(Date.now()-new Date(ST.last
 function calcStr(){
   if(!ST.wos.length)return 0;
   const s=[...ST.wos].sort((a,b)=>new Date(b.dt)-new Date(a.dt));
-  let str=0,chk=new Date();chk.setHours(0,0,0,0);
-  for(const w of s){const d=new Date(w.dt);d.setHours(0,0,0,0);const diff=(chk-d)/864e5;if(diff<=1){str++;chk=d}else break}
+  // Streak: aufeinanderfolgende Einheiten mit max. 3 Tagen Abstand (2 Tage Cooldown + 1 Puffer)
+  if((Date.now()-new Date(s[0].dt))/864e5>3)return 0;
+  let str=1;
+  for(let i=1;i<s.length;i++){const diff=(new Date(s[i-1].dt)-new Date(s[i].dt))/864e5;if(diff<=3)str++;else break}
   return str;
 }
 function fmtDate(iso){return new Date(iso).toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'})}
